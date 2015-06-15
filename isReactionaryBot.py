@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  isReactionaryBot.py
+#  
+#  Copyright 2015 Wyboth <www.reddit.com/u/Wyboth>
+#  
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#  
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#  
+#  
+
+
+
+import praw, sqlite3
+from isReactionaryBotPrivateSettings import password, reactionarySubreddits
+
+class SubredditData:#A log of a user's participation in a reactionary subreddit.
+	subredditName = ''
+	submissionCount = 0
+	commentCount = 0
+	totalSubmissionKarma = 0
+	totalCommentKarma = 0
+	submissionPermalinks = None#List cannot be initialized here!
+	commentPermalinks = None#List cannot be initialized here!
+
+def extractUsername(text):#Extracts the username to check for reactionariness from the text of a comment or private message. The only proper way to summon the bot is to have "/u/isreactionarybot foobar" in its own paragraph, with nothing before or after it.
+	lowercaseText = text.lower()
+	paragraphs = lowercaseText.splitlines()
+	for paragraph in paragraphs:
+		if paragraph.find('/u/isreactionarybot ') == 0:
+			username = paragraph[20:]
+			if username.find(' ') == -1 and len(username) > 0:
+				if username.find('/u/') == 0:
+					return username[3:]
+				elif username.find('u/') == 0:
+					return username[2:]
+				else:
+					return username
+	return None
+
+def hasProcessed(id):#This function returns true if the bot has processed the comment or the private message in question. If it has not processed it, it is about to, so it inserts the id of the comment or private message into a SQL database, so it will not process it twice.
+	hasProcessed = True
+	sqlConnection = sqlite3.connect('isReactionaryBot.db')
+	sqlCursor = sqlConnection.cursor()
+	
+	sqlCursor.execute('SELECT * FROM Identifiers WHERE id=?', (id,))
+	if sqlCursor.fetchone() == None:
+		hasProcessed = False
+		sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (id,))
+	
+	sqlConnection.commit()
+	sqlConnection.close()
+	return hasProcessed
+
+def updateSubredditData(subredditDataList, subreddit, item, isComment, r):#This takes the submission or comment, and updates its corresponding subredditData class with all of its attributes.
+	subredditInList = False
+	for i in range( len(subredditDataList) ):
+		if subredditDataList[i].subredditName.lower() == subreddit:
+			subredditInList = True
+			if isComment:
+				subredditDataList[i].commentCount += 1
+				subredditDataList[i].totalCommentKarma += int(item.score)
+				if len(subredditDataList[i].commentPermalinks) < 8:
+					subredditDataList[i].commentPermalinks.append( str( r.get_info( thing_id=item.link_id ).permalink ) )
+			else:
+				subredditDataList[i].submissionCount += 1
+				subredditDataList[i].totalSubmissionKarma += int(item.score)
+				if len(subredditDataList[i].submissionPermalinks) < 8:
+					subredditDataList[i].submissionPermalinks.append(str(item.permalink))
+			break
+	if not subredditInList:
+		newSubredditData = SubredditData()
+		newSubredditData.subredditName = str(item.subreddit)
+		if isComment:
+			newSubredditData.commentCount = 1
+			newSubredditData.totalCommentKarma = int(item.score)
+			newSubredditData.commentPermalinks = [ str( r.get_info( thing_id=item.link_id ).permalink ) ]
+			newSubredditData.submissionPermalinks = []
+		else:
+			newSubredditData.submissionCount = 1
+			newSubredditData.totalSubmissionKarma = int(item.score)
+			newSubredditData.submissionPermalinks = [str(item.permalink)]
+			newSubredditData.commentPermalinks = []
+		subredditDataList.append(newSubredditData)
+	return subredditDataList
+
+def calculateReactionariness(user, r):#Figure out how reactionary the user is, and return the text to reply with.
+	mixedCaseUsername = ''
+	nothingToReport = True
+	subredditDataList = []
+	
+	userSubmissions = r.get_content(url='http://www.reddit.com/user/' + user + '/submitted/', limit=1000)
+	userComments = r.get_content(url='http://www.reddit.com/user/' + user + '/comments/', limit=1000)
+	
+	for submission in userSubmissions:
+		if len(mixedCaseUsername) == 0:
+			mixedCaseUsername = str(submission.author)
+		subreddit = str(submission.subreddit).lower()
+		if subreddit in [x.lower() for x in reactionarySubreddits]:
+			nothingToReport = False
+			subredditDataList = updateSubredditData(subredditDataList, subreddit, submission, False, r)
+	
+	for comment in userComments:
+		if len(mixedCaseUsername) == 0:
+			mixedCaseUsername = str(comment.author)
+		subreddit = str(comment.subreddit).lower()
+		if subreddit in [x.lower() for x in reactionarySubreddits]:
+			nothingToReport = False
+			subredditDataList = updateSubredditData(subredditDataList, subreddit, comment, True, r)
+	
+	if nothingToReport:
+		return 'Nothing found for ' + user + '.'
+	
+	totalScore = 0
+	replyText = mixedCaseUsername + ' post history contains participation in the following subreddits:\n\n'
+	for subredditData in subredditDataList:
+		replyText += '/r/' + subredditData.subredditName + ': '
+		if len(subredditData.submissionPermalinks) > 0:
+			replyText += str(subredditData.submissionCount) + ' posts ('
+			for i in range( len(subredditData.submissionPermalinks) ):
+				replyText += '[' + str(i+1) + '](' + subredditData.submissionPermalinks[i] + '), '
+			replyText = replyText[:-2] + '), **combined score: ' + str(subredditData.totalSubmissionKarma) + '**'
+			if len(subredditData.commentPermalinks) > 0:
+				replyText += '; '
+		if len(subredditData.commentPermalinks) > 0:
+			replyText += str(subredditData.commentCount) + ' comments ('
+			for i in range( len(subredditData.commentPermalinks) ):
+				replyText += '[' + str(i+1) + '](' + subredditData.commentPermalinks[i] + '), '
+			replyText = replyText[:-2] + '), **combined score: ' + str(subredditData.totalCommentKarma) + '**'
+		replyText += '.\n\n'
+		totalScore += subredditData.totalSubmissionKarma + subredditData.totalCommentKarma
+	
+	replyText += '---\n\n#Total score: ' + str(totalScore) + '\n\n#Recommended Gulag Sentence: '
+	if totalScore > 0:
+		replyText += str((totalScore + 1) ** 3)
+	else:
+		replyText += '0'
+	replyText += ' years.\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
+	
+	return replyText
+
+def main():
+	r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.')
+	r.login('isReactionaryBot', password)
+	
+	while True:
+		usernameMentions = r.get_mentions()
+		for mention in usernameMentions:
+			if not hasProcessed(mention.id):
+				userToInvestigate = extractUsername( str(mention.body) )
+				if userToInvestigate != None:
+					if userToInvestigate == 'isreactionarybot':#For smartasses.
+						mention.reply('Nice try.')
+					else:
+						mention.reply( calculateReactionariness(userToInvestigate, r) )
+		
+		privateMessages = r.get_messages()
+		for message in privateMessages:
+			if not hasProcessed(message.id):
+				userToInvestigate = extractUsername( str(message.body) )
+				if userToInvestigate != None:
+					if userToInvestigate == 'isreactionarybot':#For smartasses.
+						message.reply('Nice try.')
+					else:
+						message.reply( calculateReactionariness(userToInvestigate, r) )
+	return 0
+
+if __name__ == '__main__':
+	main()
