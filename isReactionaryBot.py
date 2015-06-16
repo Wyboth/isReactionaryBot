@@ -26,6 +26,7 @@
 
 import praw, sqlite3
 from isReactionaryBotPrivateSettings import password, reactionarySubreddits
+from time import sleep
 
 class SubredditData:#A log of a user's participation in a reactionary subreddit.
 	subredditName = ''
@@ -50,6 +51,17 @@ def extractUsername(text):#Extracts the username to check for reactionariness fr
 				else:
 					return username
 	return None
+
+def isValidUsername(name, r):
+	isValid = False
+	
+	try:
+		r.get_redditor(name)
+		isValid = True
+	except:
+		pass
+	
+	return isValid
 
 def hasProcessed(id):#This function returns true if the bot has processed the comment or the private message in question. If it has not processed it, it is about to, so it inserts the id of the comment or private message into a SQL database, so it will not process it twice.
 	hasProcessed = True
@@ -164,6 +176,8 @@ def main():
 				if userToInvestigate != None:
 					if userToInvestigate == 'isreactionarybot':#For smartasses.
 						mention.reply('Nice try.')
+					elif not isValidUsername(userToInvestigate, r):
+						mention.reply('Invalid username.')
 					else:
 						mention.reply( calculateReactionariness(userToInvestigate, r) )
 		
@@ -174,8 +188,11 @@ def main():
 				if userToInvestigate != None:
 					if userToInvestigate == 'isreactionarybot':#For smartasses.
 						message.reply('Nice try.')
+					elif not isValidUsername(userToInvestigate, r):
+						message.reply('Invalid username.')
 					else:
 						message.reply( calculateReactionariness(userToInvestigate, r) )
+		sleep(120)
 	return 0
 
 if __name__ == '__main__':
