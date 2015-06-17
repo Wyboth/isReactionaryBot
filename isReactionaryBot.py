@@ -24,7 +24,7 @@
 
 
 
-import praw, sqlite3
+import praw, sqlite3, sys
 from isReactionaryBotPrivateSettings import password, reactionarySubreddits
 from time import sleep
 
@@ -52,7 +52,7 @@ def extractUsername(text):#Extracts the username to check for reactionariness fr
 					return username
 	return None
 
-def isValidUsername(name, r):
+def isValidUsername(name):
 	isValid = False
 	
 	try:
@@ -65,8 +65,6 @@ def isValidUsername(name, r):
 
 def hasProcessed(id):#This function returns true if the bot has processed the comment or the private message in question. If it has not processed it, it is about to, so it inserts the id of the comment or private message into a SQL database, so it will not process it twice.
 	hasProcessed = True
-	sqlConnection = sqlite3.connect('isReactionaryBot.db')
-	sqlCursor = sqlConnection.cursor()
 	
 	sqlCursor.execute('SELECT * FROM Identifiers WHERE id=?', (id,))
 	if sqlCursor.fetchone() == None:
@@ -74,10 +72,9 @@ def hasProcessed(id):#This function returns true if the bot has processed the co
 		sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (id,))
 	
 	sqlConnection.commit()
-	sqlConnection.close()
 	return hasProcessed
 
-def updateSubredditData(subredditDataList, subreddit, item, isComment, r):#This takes the submission or comment, and updates its corresponding subredditData class with all of its attributes.
+def updateSubredditData(subredditDataList, subreddit, item, isComment):#This takes the submission or comment, and updates its corresponding subredditData class with all of its attributes.
 	subredditInList = False
 	for i in range( len(subredditDataList) ):
 		if subredditDataList[i].subredditName.lower() == subreddit:
@@ -86,7 +83,7 @@ def updateSubredditData(subredditDataList, subreddit, item, isComment, r):#This 
 				subredditDataList[i].commentCount += 1
 				subredditDataList[i].totalCommentKarma += int(item.score)
 				if len(subredditDataList[i].commentPermalinks) < 8:
-					subredditDataList[i].commentPermalinks.append( str( r.get_info( thing_id=item.link_id ).permalink ) )
+					subredditDataList[i].commentPermalinks.append( str( r.get_info( thing_id=item.link_id ).permalink ) + str(item.id) + '?context=10' )
 			else:
 				subredditDataList[i].submissionCount += 1
 				subredditDataList[i].totalSubmissionKarma += int(item.score)
@@ -109,7 +106,7 @@ def updateSubredditData(subredditDataList, subreddit, item, isComment, r):#This 
 		subredditDataList.append(newSubredditData)
 	return subredditDataList
 
-def calculateReactionariness(user, r):#Figure out how reactionary the user is, and return the text to reply with.
+def calculateReactionariness(user):#Figure out how reactionary the user is, and return the text to reply with.
 	mixedCaseUsername = ''
 	nothingToReport = True
 	subredditDataList = []
@@ -123,7 +120,7 @@ def calculateReactionariness(user, r):#Figure out how reactionary the user is, a
 		subreddit = str(submission.subreddit).lower()
 		if subreddit in [x.lower() for x in reactionarySubreddits]:
 			nothingToReport = False
-			subredditDataList = updateSubredditData(subredditDataList, subreddit, submission, False, r)
+			subredditDataList = updateSubredditData(subredditDataList, subreddit, submission, False)
 	
 	for comment in userComments:
 		if len(mixedCaseUsername) == 0:
@@ -131,10 +128,10 @@ def calculateReactionariness(user, r):#Figure out how reactionary the user is, a
 		subreddit = str(comment.subreddit).lower()
 		if subreddit in [x.lower() for x in reactionarySubreddits]:
 			nothingToReport = False
-			subredditDataList = updateSubredditData(subredditDataList, subreddit, comment, True, r)
+			subredditDataList = updateSubredditData(subredditDataList, subreddit, comment, True)
 	
 	if nothingToReport:
-		return 'Nothing found for ' + user + '.'
+		return 'Nothing found for ' + mixedCaseUsername + '.'
 	
 	totalScore = 0
 	replyText = mixedCaseUsername + ' post history contains participation in the following subreddits:\n\n'
@@ -155,7 +152,7 @@ def calculateReactionariness(user, r):#Figure out how reactionary the user is, a
 		replyText += '.\n\n'
 		totalScore += subredditData.totalSubmissionKarma + subredditData.totalCommentKarma
 	
-	replyText += '---\n\n#Total score: ' + str(totalScore) + '\n\n#Recommended Gulag Sentence: '
+	replyText += '---\n\n###Total score: ' + str(totalScore) + '\n\n###Recommended Gulag Sentence: '
 	if totalScore > 0:
 		replyText += str((totalScore + 1) ** 3)
 	else:
@@ -164,36 +161,37 @@ def calculateReactionariness(user, r):#Figure out how reactionary the user is, a
 	
 	return replyText
 
+def handleRequest(request):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
+	if not hasProcessed(request.id):
+		userToInvestigate = extractUsername( str(request.body) )
+		if userToInvestigate != None:
+			if userToInvestigate == 'isreactionarybot':#For smartasses.
+				request.reply('Nice try.')
+			elif not isValidUsername(userToInvestigate):
+				request.reply('Invalid username.')
+			else:
+				request.reply( calculateReactionariness(userToInvestigate) )
+
 def main():
-	r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.')
-	r.login('isReactionaryBot', password)
-	
 	while True:
 		usernameMentions = r.get_mentions()
 		for mention in usernameMentions:
-			if not hasProcessed(mention.id):
-				userToInvestigate = extractUsername( str(mention.body) )
-				if userToInvestigate != None:
-					if userToInvestigate == 'isreactionarybot':#For smartasses.
-						mention.reply('Nice try.')
-					elif not isValidUsername(userToInvestigate, r):
-						mention.reply('Invalid username.')
-					else:
-						mention.reply( calculateReactionariness(userToInvestigate, r) )
+			handleRequest(mention)
 		
 		privateMessages = r.get_messages()
 		for message in privateMessages:
-			if not hasProcessed(message.id):
-				userToInvestigate = extractUsername( str(message.body) )
-				if userToInvestigate != None:
-					if userToInvestigate == 'isreactionarybot':#For smartasses.
-						message.reply('Nice try.')
-					elif not isValidUsername(userToInvestigate, r):
-						message.reply('Invalid username.')
-					else:
-						message.reply( calculateReactionariness(userToInvestigate, r) )
+			handleRequest(message)
+		
 		sleep(120)
 	return 0
+
+sqlConnection = sqlite3.connect('isReactionaryBot.db')
+sqlCursor = sqlConnection.cursor()
+
+r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.')
+r.login('isReactionaryBot', password)
+
+sys.stdout = open('isReactionaryBotOutput.txt', 'w')
 
 if __name__ == '__main__':
 	main()
