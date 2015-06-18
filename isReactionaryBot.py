@@ -57,8 +57,11 @@ def isValidUsername(name):
 	isValid = False
 	
 	try:
-		r.get_redditor(name)
-		isValid = True
+		redditor = r.get_redditor(name)
+		submissions = redditor.get_submitted()
+		for submission in submissions:
+			isValid = True
+			break
 	except:
 		pass
 	
