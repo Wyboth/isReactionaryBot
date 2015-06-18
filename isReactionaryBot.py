@@ -112,8 +112,9 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
 	nothingToReport = True
 	subredditDataList = []
 	
-	userSubmissions = r.get_content(url='http://www.reddit.com/user/' + user + '/submitted/', limit=1000)
-	userComments = r.get_content(url='http://www.reddit.com/user/' + user + '/comments/', limit=1000)
+	userObj = r.get_redditor(user)
+	userSubmissions = userObj.get_submitted(limit=1000)
+	userComments = userObj.get_comments(limit=1000)
 	
 	for submission in userSubmissions:
 		if len(mixedCaseUsername) == 0:
