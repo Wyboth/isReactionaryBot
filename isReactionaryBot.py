@@ -25,7 +25,8 @@
 
 
 import praw, sqlite3, sys
-from isReactionaryBotPrivateSettings import password, reactionarySubreddits
+from isReactionaryBotPrivateSettings import password, path
+from isReactionaryBotSubreddits import reactionarySubreddits
 from time import sleep
 
 class SubredditData:#A log of a user's participation in a reactionary subreddit.
@@ -163,7 +164,7 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
 
 def handleRequest(request):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
 	if not hasProcessed(request.id):
-		userToInvestigate = extractUsername( str(request.body) )
+		userToInvestigate = extractUsername(request.body)
 		if userToInvestigate != None:
 			if userToInvestigate == 'isreactionarybot':#For smartasses.
 				request.reply('Nice try.')
@@ -185,13 +186,13 @@ def main():
 		sleep(120)
 	return 0
 
-sqlConnection = sqlite3.connect('isReactionaryBot.db')
+sqlConnection = sqlite3.connect(path + 'isReactionaryBot.db')
 sqlCursor = sqlConnection.cursor()
 
 r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.')
 r.login('isReactionaryBot', password)
 
-sys.stdout = open('isReactionaryBotOutput.txt', 'w')
+sys.stderr = open(path + 'isReactionaryBotOutput.txt', 'w')
 
 if __name__ == '__main__':
 	main()
