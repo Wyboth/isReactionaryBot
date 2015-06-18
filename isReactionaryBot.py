@@ -192,7 +192,11 @@ sqlCursor = sqlConnection.cursor()
 r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.')
 r.login('isReactionaryBot', password)
 
+<<<<<<< HEAD
 sys.stderr = open(path + 'isReactionaryBotOutput.txt', 'w')
+=======
+sys.stdout = open(path + 'isReactionaryBotOutput.txt', 'w')
+>>>>>>> ae16fd46d7aa7d4145c0abc132b5a0eca7229e56
 
 if __name__ == '__main__':
 	main()
