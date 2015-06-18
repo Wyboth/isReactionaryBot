@@ -1,3 +1,4 @@
 *PrivateSettings.py
 *.pyc
 *.txt
+/webhook/*
