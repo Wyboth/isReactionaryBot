@@ -28,6 +28,12 @@ import praw, sqlite3, sys
 from isReactionaryBotPrivateSettings import password, path
 from isReactionaryBotSubreddits import reactionarySubreddits
 from time import sleep
+import re
+
+username_regex = re.compile(
+    r'.*(/u/isreactionarybot)\s*(?:/?u/)?(?P<username>\w+)(?:\W|$)',
+    re.IGNORECASE
+)
 
 class SubredditData:#A log of a user's participation in a reactionary subreddit.
     subredditName = ''
@@ -38,20 +44,16 @@ class SubredditData:#A log of a user's participation in a reactionary subreddit.
     submissionPermalinks = None#List cannot be initialized here!
     commentPermalinks = None#List cannot be initialized here!
 
-def extractUsername(text):#Extracts the username to check for reactionariness from the text of a comment or private message. The only proper way to summon the bot is to have "/u/isreactionarybot foobar" in its own paragraph, with nothing before or after it.
-    lowercaseText = text.lower()
-    paragraphs = lowercaseText.splitlines()
-    for paragraph in paragraphs:
-        if paragraph.find('/u/isreactionarybot ') == 0:
-            username = paragraph[20:]
-            if username.find(' ') == -1 and len(username) > 0:
-                if username.find('/u/') == 0:
-                    return username[3:]
-                elif username.find('u/') == 0:
-                    return username[2:]
-                else:
-                    return username
-    return None
+def extractUsername(text):
+    """Extracts the username from the text of a comment or private message. 
+    
+    The bot is summoned on the username found immediately after the bot's name.
+    """
+    match = username_regex.match(text)
+    if match:
+        return match.group('username')
+    else:
+        return None
 
 def isValidUsername(name):
     isValid = False
