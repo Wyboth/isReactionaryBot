@@ -69,5 +69,8 @@ reactionarySubreddits = [
     'RaceRealism',
     'nationalsocialism',
     'Conservative',
-    'im14andthisisdeep'
+    'im14andthisisdeep',
+    'worldnews',
+    'videos',
+    'SandersForPresident'
 ]
