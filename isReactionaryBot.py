@@ -159,10 +159,14 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
 	
 	replyText += '---\n\n###Total score: ' + str(totalScore) + '\n\n###Recommended Gulag Sentence: '
 	if totalScore > 0:
-		replyText += str((totalScore + 1) ** 3)
+		sentenceLength = (totalScore + 1) ** 3
+		if sentenceLength > 1000000000:
+			replyText += 'Execution.'
+		else:
+			replyText += str(sentenceLength) + ' years.'
 	else:
-		replyText += '0'
-	replyText += ' years.\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
+		replyText += '0 years.'
+	replyText += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
 	
 	return replyText
 
