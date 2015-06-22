@@ -68,5 +68,6 @@ reactionarySubreddits = [
     'whitenationalism',
     'RaceRealism',
     'nationalsocialism',
-    'Conservative'
+    'Conservative',
+    'im14andthisisdeep'
 ]
