@@ -100,7 +100,7 @@ def updateSubredditData(subredditDataList, subreddit, item, isComment):#This tak
 		if isComment:
 			newSubredditData.commentCount = 1
 			newSubredditData.totalCommentKarma = int(item.score)
-			newSubredditData.commentPermalinks = [ str( r.get_info( thing_id=item.link_id ).permalink ) ]
+			newSubredditData.commentPermalinks = [ str( r.get_info( thing_id=item.link_id ).permalink ) + str(item.id) + '?context=10' ]
 			newSubredditData.submissionPermalinks = []
 		else:
 			newSubredditData.submissionCount = 1
