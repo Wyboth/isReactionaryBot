@@ -51,21 +51,21 @@ def extractUsername(text):
     """
     match = username_regex.match(text)
     if match:
-        return match.group('username')
+    return match.group('username')
     else:
-        return None
+    return None
 
 def isValidUsername(name):
     isValid = False
     
     try:
-        redditor = r.get_redditor(name)
-        submissions = redditor.get_submitted()
-        for submission in submissions:
-            isValid = True
-            break
+    redditor = r.get_redditor(name)
+    submissions = redditor.get_submitted()
+    for submission in submissions:
+        isValid = True
+        break
     except:
-        pass
+    pass
     
     return isValid
 
@@ -74,8 +74,8 @@ def hasProcessed(id):#This function returns true if the bot has processed the co
     
     sqlCursor.execute('SELECT * FROM Identifiers WHERE id=?', (id,))
     if sqlCursor.fetchone() == None:
-        hasProcessed = False
-        sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (id,))
+    hasProcessed = False
+    sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (id,))
     
     sqlConnection.commit()
     return hasProcessed
@@ -102,7 +102,7 @@ def updateSubredditData(subredditDataList, subreddit, item, isComment):#This tak
         if isComment:
             newSubredditData.commentCount = 1
             newSubredditData.totalCommentKarma = int(item.score)
-            newSubredditData.commentPermalinks = [ str( r.get_info( thing_id=item.link_id ).permalink ) ]
+            newSubredditData.commentPermalinks = [ str( r.get_info( thing_id=item.link_id ).permalink ) + str(item.id) + '?context=10' ]
             newSubredditData.submissionPermalinks = []
         else:
             newSubredditData.submissionCount = 1
@@ -161,35 +161,39 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
     
     replyText += '---\n\n###Total score: ' + str(totalScore) + '\n\n###Recommended Gulag Sentence: '
     if totalScore > 0:
-        replyText += str((totalScore + 1) ** 3)
+        sentenceLength = (totalScore + 1) ** 3
+        if sentenceLength > 1000000000:
+            replyText += 'Execution.'
+        else:
+            replyText += str(sentenceLength) + ' years.'
     else:
-        replyText += '0'
-    replyText += ' years.\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
+        replyText += '0 years.'
+    replyText += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
     
     return replyText
 
 def handleRequest(request):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
     if not hasProcessed(request.id):
-        userToInvestigate = extractUsername(request.body)
-        if userToInvestigate != None:
-            if userToInvestigate == 'isreactionarybot':#For smartasses.
-                request.reply('Nice try.')
-            elif not isValidUsername(userToInvestigate):
-                request.reply('Invalid username.')
-            else:
-                request.reply( calculateReactionariness(userToInvestigate) )
+    userToInvestigate = extractUsername(request.body)
+    if userToInvestigate != None:
+        if userToInvestigate == 'isreactionarybot':#For smartasses.
+        request.reply('Nice try.')
+        elif not isValidUsername(userToInvestigate):
+        request.reply('Invalid username.')
+        else:
+        request.reply( calculateReactionariness(userToInvestigate) )
 
 def main():
     while True:
-        usernameMentions = r.get_mentions()
-        for mention in usernameMentions:
-            handleRequest(mention)
-        
-        privateMessages = r.get_messages()
-        for message in privateMessages:
-            handleRequest(message)
-        
-        sleep(120)
+    usernameMentions = r.get_mentions()
+    for mention in usernameMentions:
+        handleRequest(mention)
+    
+    privateMessages = r.get_messages()
+    for message in privateMessages:
+        handleRequest(message)
+    
+    sleep(120)
     return 0
 
 sqlConnection = sqlite3.connect(path + 'isReactionaryBot.db')
