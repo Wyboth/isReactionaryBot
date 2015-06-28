@@ -31,8 +31,8 @@ from time import sleep
 import re
 
 username_regex = re.compile(
-    r'.*(/u/isreactionarybot)\s*(?:/?u/)?(?P<username>\w+)\s*(?:\n|$)',
-    re.IGNORECASE
+    r'^(/u/isreactionarybot)\s*(?:/?u/)?(?P<username>\w+)\s*$',
+    re.IGNORECASE|re.MULTILINE
 )
 
 class SubredditData:#A log of a user's participation in a reactionary subreddit.
@@ -51,21 +51,21 @@ def extractUsername(text):
     """
     match = username_regex.match(text)
     if match:
-    return match.group('username')
+        return match.group('username')
     else:
-    return None
+        return None
 
 def isValidUsername(name):
     isValid = False
     
     try:
-    redditor = r.get_redditor(name)
-    submissions = redditor.get_submitted()
-    for submission in submissions:
-        isValid = True
-        break
+        redditor = r.get_redditor(name)
+        submissions = redditor.get_submitted()
+        for submission in submissions:
+            isValid = True
+            break
     except:
-    pass
+        pass
     
     return isValid
 
@@ -74,8 +74,8 @@ def hasProcessed(id):#This function returns true if the bot has processed the co
     
     sqlCursor.execute('SELECT * FROM Identifiers WHERE id=?', (id,))
     if sqlCursor.fetchone() == None:
-    hasProcessed = False
-    sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (id,))
+        hasProcessed = False
+        sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (id,))
     
     sqlConnection.commit()
     return hasProcessed
@@ -174,26 +174,26 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
 
 def handleRequest(request):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
     if not hasProcessed(request.id):
-    userToInvestigate = extractUsername(request.body)
-    if userToInvestigate != None:
-        if userToInvestigate == 'isreactionarybot':#For smartasses.
-        request.reply('Nice try.')
-        elif not isValidUsername(userToInvestigate):
-        request.reply('Invalid username.')
-        else:
-        request.reply( calculateReactionariness(userToInvestigate) )
+        userToInvestigate = extractUsername(request.body)
+        if userToInvestigate != None:
+            if userToInvestigate == 'isreactionarybot':#For smartasses.
+                request.reply('Nice try.')
+            elif not isValidUsername(userToInvestigate):
+                request.reply('Invalid username.')
+            else:
+                request.reply( calculateReactionariness(userToInvestigate) )
 
 def main():
     while True:
-    usernameMentions = r.get_mentions()
-    for mention in usernameMentions:
-        handleRequest(mention)
-    
-    privateMessages = r.get_messages()
-    for message in privateMessages:
-        handleRequest(message)
-    
-    sleep(120)
+        usernameMentions = r.get_mentions()
+        for mention in usernameMentions:
+            handleRequest(mention)
+        
+        privateMessages = r.get_messages()
+        for message in privateMessages:
+            handleRequest(message)
+        
+        sleep(120)
     return 0
 
 sqlConnection = sqlite3.connect(path + 'isReactionaryBot.db')
