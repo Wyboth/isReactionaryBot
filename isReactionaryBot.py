@@ -31,7 +31,7 @@ from time import sleep
 import re
 
 username_regex = re.compile(
-    r'.*(/u/isreactionarybot)\s*(?:/?u/)?(?P<username>\w+)(?:\W|$)',
+    r'.*(/u/isreactionarybot)\s*(?:/?u/)?(?P<username>\w+)\s*(?:\n|$)',
     re.IGNORECASE
 )
 
