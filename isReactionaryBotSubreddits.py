@@ -72,5 +72,6 @@ reactionarySubreddits = [
     'im14andthisisdeep',
     'worldnews',
     'videos',
-    'SandersForPresident'
+    'SandersForPresident',
+    'GenderCritical'
 ]
