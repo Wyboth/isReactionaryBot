@@ -74,5 +74,6 @@ reactionarySubreddits = [
     'videos',
     'SandersForPresident',
     'GenderCritical',
-    'european'
+    'european',
+    'AntiPOZi'
 ]
