@@ -185,9 +185,9 @@ def handleRequest(request):#Handle a user's comment or private message requestin
 
 def main():
     while True:
-        subredditComments = r.get_subreddit('FULLCOMMUNISM+gulag+ShitLiberalsSay+MarxistPalestine').get_comments()
-        for comment in subredditComments:
-            handleRequest(comment)
+        usernameMentions = r.get_mentions()
+        for mention in usernameMentions:
+            handleRequest(mention)
         
         privateMessages = r.get_messages()
         for message in privateMessages:
