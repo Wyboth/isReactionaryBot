@@ -77,5 +77,6 @@ reactionarySubreddits = [
     'european',
     'AntiPOZi',
     'Cringepics',
-    'CringeAnarchy'
+    'CringeAnarchy',
+    'nazi'
 ]
