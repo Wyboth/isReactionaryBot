@@ -172,16 +172,19 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
     
     return replyText
 
-def handleRequest(request):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
+def handleRequest(request, isPrivateMessage):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
     if not hasProcessed(request.id):
         userToInvestigate = extractUsername(request.body)
         if userToInvestigate != None:
-            if userToInvestigate == 'isreactionarybot':#For smartasses.
-                request.reply('Nice try.')
-            elif not isValidUsername(userToInvestigate):
-                request.reply('Invalid username.')
-            else:
-                request.reply( calculateReactionariness(userToInvestigate) )
+            try:
+                if userToInvestigate == 'isreactionarybot':#For smartasses.
+                    request.reply('Nice try.')
+                elif not isValidUsername(userToInvestigate):
+                    request.reply('Invalid username.')
+                else:
+                    request.reply( calculateReactionariness(userToInvestigate) )
+            except:
+                pass
 
 def main():
     while True:
