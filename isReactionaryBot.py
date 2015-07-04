@@ -186,12 +186,18 @@ def handleRequest(request):#Handle a user's comment or private message requestin
 def main():
     while True:
         usernameMentions = r.get_mentions()
-        for mention in usernameMentions:
-            handleRequest(mention)
+        try:
+            for mention in usernameMentions:
+                handleRequest(mention)
+        except:
+            pass
         
         privateMessages = r.get_messages()
-        for message in privateMessages:
-            handleRequest(message)
+        try:
+            for message in privateMessages:
+                handleRequest(message)
+        except:
+            pass
         
         sleep(120)
     return 0
