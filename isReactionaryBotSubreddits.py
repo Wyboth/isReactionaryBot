@@ -75,5 +75,7 @@ reactionarySubreddits = [
     'SandersForPresident',
     'GenderCritical',
     'european',
-    'AntiPOZi'
+    'AntiPOZi',
+    'Cringepics',
+    'CringeAnarchy'
 ]
