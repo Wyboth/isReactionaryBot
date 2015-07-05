@@ -30,8 +30,6 @@ from isReactionaryBotSubreddits import reactionarySubreddits
 from time import sleep
 import re
 
-#Adding this comment as part of a push to test the web hook.
-
 username_regex = re.compile(
     r'^(/u/isreactionarybot)\s*(?:/?u/)?(?P<username>\w+)\s*$',
     re.IGNORECASE|re.MULTILINE
