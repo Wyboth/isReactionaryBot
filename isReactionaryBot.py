@@ -53,7 +53,7 @@ def extractUsername(text):
     """
     match = username_regex.match(text)
     if match:
-        return match.group('username')
+        return match.group('username').lower()
     else:
         return None
 
