@@ -70,12 +70,12 @@ reactionarySubreddits = [
     'nationalsocialism',
     'Conservative',
     'im14andthisisdeep',
-    'worldnews',
-    'videos',
+    'BlackPeopleTwitter',
     'SandersForPresident',
     'GenderCritical',
     'european',
     'AntiPOZi',
     'Cringepics',
-    'CringeAnarchy'
+    'CringeAnarchy',
+    'nazi'
 ]

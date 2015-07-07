@@ -51,7 +51,7 @@ def extractUsername(text):
     """
     match = username_regex.match(text)
     if match:
-        return match.group('username')
+        return match.group('username').lower()
     else:
         return None
 
@@ -172,26 +172,35 @@ def calculateReactionariness(user):#Figure out how reactionary the user is, and 
     
     return replyText
 
-def handleRequest(request):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
+def handleRequest(request, isPrivateMessage):#Handle a user's comment or private message requesting the bot to investigate a user's reactionariness.
     if not hasProcessed(request.id):
         userToInvestigate = extractUsername(request.body)
         if userToInvestigate != None:
-            if userToInvestigate == 'isreactionarybot':#For smartasses.
-                request.reply('Nice try.')
-            elif not isValidUsername(userToInvestigate):
-                request.reply('Invalid username.')
-            else:
-                request.reply( calculateReactionariness(userToInvestigate) )
+            try:
+                if userToInvestigate == 'isreactionarybot':#For smartasses.
+                    request.reply('Nice try.')
+                elif not isValidUsername(userToInvestigate):
+                    request.reply('Invalid username.')
+                else:
+                    request.reply( calculateReactionariness(userToInvestigate) )
+            except:
+                pass
 
 def main():
     while True:
-        subredditComments = r.get_subreddit('FULLCOMMUNISM+gulag+ShitLiberalsSay+MarxistPalestine').get_comments()
-        for comment in subredditComments:
-            handleRequest(comment)
+        usernameMentions = r.get_mentions()
+        try:
+            for mention in usernameMentions:
+                handleRequest(mention)
+        except:
+            pass
         
         privateMessages = r.get_messages()
-        for message in privateMessages:
-            handleRequest(message)
+        try:
+            for message in privateMessages:
+                handleRequest(message)
+        except:
+            pass
         
         sleep(120)
     return 0
