@@ -24,7 +24,7 @@
 
 
 
-import praw, sqlite3, sys
+import logging, praw, sqlite3, sys
 from isReactionaryBotPrivateSettings import password, path
 from isReactionaryBotSubreddits import reactionarySubreddits
 from time import sleep
@@ -184,7 +184,7 @@ def handleRequest(request, isPrivateMessage):#Handle a user's comment or private
                 else:
                     request.reply( calculateReactionariness(userToInvestigate) )
             except:
-                pass
+                logging.exception('Exception during message handling: ')
 
 def main():
     while True:
@@ -193,17 +193,19 @@ def main():
             for mention in usernameMentions:
                 handleRequest(mention)
         except:
-            pass
+            logging.exception('Exception during username mention response: ')
         
         privateMessages = r.get_messages()
         try:
             for message in privateMessages:
                 handleRequest(message)
-        except:
-            pass
+        except Exception as e:
+            logging.exception('Exception during PM response: ')
         
         sleep(120)
     return 0
+
+logging.basicConfig(filename=path + 'isReactionaryBot.log')
 
 sqlConnection = sqlite3.connect(path + 'isReactionaryBot.db')
 sqlCursor = sqlConnection.cursor()
