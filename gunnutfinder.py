@@ -1,28 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-#  isReactionaryBot.py
-#  
-#  Copyright 2015 Wyboth <www.reddit.com/u/Wyboth>
-#  
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#  
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#  
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#  MA 02110-1301, USA.
-#  
-#  
-
-
 
 import praw, sqlite3, sys
 from privatesettings import password, path
@@ -125,7 +102,7 @@ def calculateReactionariness(user):#Figure out how much of a gunnut the user is,
         if len(mixedCaseUsername) == 0:
             mixedCaseUsername = str(submission.author)
         subreddit = str(submission.subreddit).lower()
-        if subreddit in [x.lower() for x in reactionarySubreddits]:
+        if subreddit in [x.lower() for x in gunnutSubreddits]:
             nothingToReport = False
             subredditDataList = updateSubredditData(subredditDataList, subreddit, submission, False)
     
@@ -133,7 +110,7 @@ def calculateReactionariness(user):#Figure out how much of a gunnut the user is,
         if len(mixedCaseUsername) == 0:
             mixedCaseUsername = str(comment.author)
         subreddit = str(comment.subreddit).lower()
-        if subreddit in [x.lower() for x in reactionarySubreddits]:
+        if subreddit in [x.lower() for x in gunnutSubreddits]:
             nothingToReport = False
             subredditDataList = updateSubredditData(subredditDataList, subreddit, comment, True)
     
@@ -177,7 +154,7 @@ def handleRequest(request):#Handle a user's comment or private message requestin
         userToInvestigate = extractUsername(request.body)
         if userToInvestigate != None:
             try:
-                if userToInvestigate == 'isreactionarybot':#For smartasses.
+                if userToInvestigate == 'gunnutfinder':#For smartasses.
                     request.reply('Nice try.')
                 elif not isValidUsername(userToInvestigate):
                     request.reply('Invalid username.')
@@ -192,8 +169,8 @@ def main():
         try:
             for mention in usernameMentions:
                 handleRequest(mention)
-        except:
-            pass
+        except Exception as e:
+            print(e)
         
         privateMessages = r.get_messages()
         try:
@@ -205,13 +182,14 @@ def main():
         sleep(120)
     return 0
 
-sqlConnection = sqlite3.connect(path + 'isReactionaryBot.db')
+sqlConnection = sqlite3.connect(path + 'gunnutfinder.db')
 sqlCursor = sqlConnection.cursor()
+sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
 
 r = praw.Reddit(user_agent='A program that checks if a user is a gun nut.')
 r.login('gunnutfinder', password)
 
-sys.stderr = open(path + 'isReactionaryBotOutput.txt', 'w')
+sys.stderr = open(path + 'gunnutfinderOutput.txt', 'w')
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,7 @@
+/.idea/*
+/__pycache__/*
+*.txt
+*.db
+*.pyc
+privatesettings.py
+subreddits.py
