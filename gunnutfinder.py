@@ -120,18 +120,18 @@ def calculateReactionariness(user):#Figure out how much of a gunnut the user is,
     totalScore = 0
     replyText = mixedCaseUsername + ' post history contains participation in the following subreddits:\n\n'
     for subredditData in subredditDataList:
-        replyText += '/r/' + subredditData.subredditName + ': '
+        replyText += '[/r/' + subredditData.subredditName + '](' + 'http://np.reddit.com/r/' + subredditData.subredditName + '): '
         if len(subredditData.submissionPermalinks) > 0:
             replyText += str(subredditData.submissionCount) + ' posts ('
             for i in range( len(subredditData.submissionPermalinks) ):
-                replyText += '[' + str(i+1) + '](' + subredditData.submissionPermalinks[i] + '), '
+                replyText += '[' + str(i+1) + '](' + subredditData.submissionPermalinks[i].replace('www.', 'np.') + '), '
             replyText = replyText[:-2] + '), **combined score: ' + str(subredditData.totalSubmissionKarma) + '**'
             if len(subredditData.commentPermalinks) > 0:
                 replyText += '; '
         if len(subredditData.commentPermalinks) > 0:
             replyText += str(subredditData.commentCount) + ' comments ('
             for i in range( len(subredditData.commentPermalinks) ):
-                replyText += '[' + str(i+1) + '](' + subredditData.commentPermalinks[i] + '), '
+                replyText += '[' + str(i+1) + '](' + subredditData.commentPermalinks[i].replace('www.', 'np.') + '), '
             replyText = replyText[:-2] + '), **combined score: ' + str(subredditData.totalCommentKarma) + '**'
         replyText += '.\n\n'
         totalScore += subredditData.totalSubmissionKarma + subredditData.totalCommentKarma
