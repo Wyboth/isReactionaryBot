@@ -136,16 +136,16 @@ def calculateReactionariness(user):#Figure out how much of a gunnut the user is,
         replyText += '.\n\n'
         totalScore += subredditData.totalSubmissionKarma + subredditData.totalCommentKarma
     
-    replyText += '---\n\n###Total score: ' + str(totalScore) + '\n\n###Recommended Gulag Sentence: '
+    replyText += '---\n\n###Total score: ' + str(totalScore) + '\n\n###Chance of being a gunnut: '
     if totalScore > 0:
         sentenceLength = (totalScore + 1) ** 3
         if sentenceLength > 1000000000:
-            replyText += 'Execution.'
+ 	    replyText += str(sentenceLength) + ' %.'
         else:
-            replyText += str(sentenceLength) + ' years.'
+            replyText += str(sentenceLength) + ' %.'
     else:
         replyText += '0 years.'
-    replyText += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
+    replyText += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched. If I am misbehaving send my [Creator](https://www.reddit.com/message/compose/?to=sasnfbi1234) a message.	'
     
     return replyText
 
@@ -182,14 +182,14 @@ def main():
         sleep(120)
     return 0
 
-sqlConnection = sqlite3.connect(path + 'gunnutfinder.db')
+sqlConnection = sqlite3.connect(path + 'database.db')
 sqlCursor = sqlConnection.cursor()
 sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
 
 r = praw.Reddit(user_agent='A program that checks if a user is a gun nut.')
 r.login('gunnutfinder', password)
 
-sys.stderr = open(path + 'gunnutfinderOutput.txt', 'w')
+sys.stderr = open(path + 'output.txt', 'w')
 
 if __name__ == '__main__':
     main()
