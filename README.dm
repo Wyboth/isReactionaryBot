@@ -1,3 +1,5 @@
+#how to and about me
+
 I am a bot that works to identify gunnuts on reddit in order to avoid wasting time engaging with them and alert others of their posting history. I have two functions. 
 
 1. you can summon me in a thread by posting in a comment 
