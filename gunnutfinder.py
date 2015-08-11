@@ -32,18 +32,11 @@ def extract_username(text):
 
 
 def has_processed(post):
-    """This function returns true if the bot has processed the comment or the private message in question. If it has not
-     processed it, it is about to, so it inserts the id of the comment or private message into a SQL database, so it
-     will not process it twice."""
-    processed = True
-    
+    """This function returns true if the bot has processed the comment or the private message in question."""
     sqlCursor.execute('SELECT * FROM Identifiers WHERE id=?', (post,))
     if sqlCursor.fetchone() is None:
-        processed = False
-        sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (post,))
-    
-    sqlConnection.commit()
-    return processed
+        return False
+    return True
 
 
 def update_subreddit_data(subredditdata, subreddit, item, is_comment):
@@ -144,14 +137,18 @@ def handle_request(request):
             try:
                 if user == 'gunnutfinder':  # For smartasses.
                     request.reply('Nice try.')
+                    sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
                     print(time.ctime() + ': Received request to check self.')
                 else:
                     request.reply(calculate_gunnuttiness(user))
+                    sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
                     print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
             except praw.errors.NotFound:
                 request.reply('User {0} not found.'.format(user))
+                sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
                 print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user),
                       file=sys.stderr)
+            sqlConnection.commit()
 
 
 def main():
