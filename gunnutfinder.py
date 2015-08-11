@@ -85,26 +85,22 @@ def update_subreddit_data(subredditdata, subreddit, item, is_comment):
 
 def calculate_gunnuttiness(user):
     """Figures out how much of a gunnut the user is, and returns the reply text."""
-    username = ''
     nodata = True
     subredditdata_list = []
     
     praw_user = r.get_redditor(user)
+    username = praw_user.name
     submissions = praw_user.get_submitted(limit=1000)
     comments = praw_user.get_comments(limit=1000)
     
     for submission in submissions:
-        if len(username) == 0:
-            username = str(submission.author)
-        subreddit = str(submission.subreddit).lower()
+        subreddit = submission.subreddit.display_name.lower()
         if subreddit in [x.lower() for x in gunnutSubreddits]:
             nodata = False
             subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, submission, False)
     
     for comment in comments:
-        if len(username) == 0:
-            username = str(comment.author)
-        subreddit = str(comment.subreddit).lower()
+        subreddit = comment.subreddit.display_name.lower()
         if subreddit in [x.lower() for x in gunnutSubreddits]:
             nodata = False
             subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, comment, True)
