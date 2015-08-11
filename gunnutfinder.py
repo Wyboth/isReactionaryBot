@@ -57,27 +57,25 @@ def update_subreddit_data(subredditdata, subreddit, item, is_comment):
                 subredditdata[i].commentCount += 1
                 subredditdata[i].totalCommentKarma += int(item.score)
                 if len(subredditdata[i].commentPermalinks) < 8:
-                    subredditdata[i].commentPermalinks.append(str(r.get_info(thing_id=item.link_id).permalink) +
-                                                              str(item.id) + '?context=10')
+                    subredditdata[i].commentPermalinks.append(item.permalink + '?context=10')
             else:
                 subredditdata[i].submissionCount += 1
                 subredditdata[i].totalSubmissionKarma += int(item.score)
                 if len(subredditdata[i].submissionPermalinks) < 8:
-                    subredditdata[i].submissionPermalinks.append(str(item.permalink))
+                    subredditdata[i].submissionPermalinks.append(item.permalink)
             break
     if not subreddit_in_list:
         newdata = SubredditData()
-        newdata.subredditName = str(item.subreddit)
+        newdata.subredditName = item.subreddit.display_name
         if is_comment:
             newdata.commentCount = 1
             newdata.totalCommentKarma = int(item.score)
-            newdata.commentPermalinks = [str(r.get_info(thing_id=item.link_id).permalink) + str(item.id) +
-                                         '?context=10']
+            newdata.commentPermalinks = [item.permalink + '?context=10']
             newdata.submissionPermalinks = []
         else:
             newdata.submissionCount = 1
             newdata.totalSubmissionKarma = int(item.score)
-            newdata.submissionPermalinks = [str(item.permalink)]
+            newdata.submissionPermalinks = [item.permalink]
             newdata.commentPermalinks = []
         subredditdata.append(newdata)
     return subredditdata
