@@ -134,7 +134,7 @@ def calculate_gunnuttiness(user):
     else:
         replytext += '0%.'
     replytext += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched. If I am misbehaving send' \
-                 'my [Creator](https://www.reddit.com/message/compose/?to=sasnfbi1234) a message.'
+                 'my [Creator](https://np.reddit.com/message/compose/?to=sasnfbi1234) a message.'
     return replytext
 
 
