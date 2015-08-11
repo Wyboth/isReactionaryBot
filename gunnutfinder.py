@@ -150,10 +150,13 @@ def handle_request(request):
                     print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
             except praw.errors.NotFound:
                 request.reply('User {0} not found.'.format(user))
-                print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
+                print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user),
+                      file=sys.stderr)
 
 
 def main():
+    r.login('gunnutfinder', password)
+    print(time.ctime() + ': Logged in as /u/gunnutfinder', file=sys.stdout)
     while True:
         try:
             for mention in r.get_mentions():
@@ -161,7 +164,7 @@ def main():
             for message in r.get_messages():
                 handle_request(message)
         except Exception as e:
-            print(e)
+            print(e, file=sys.stderr)
         time.sleep(120)
 
 
@@ -175,10 +178,9 @@ sqlCursor = sqlConnection.cursor()
 sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
 
 r = praw.Reddit(user_agent='A program that checks if a user is a gun nut.')
-r.login('gunnutfinder', password)
 
-outputfile = open(path + 'output.txt', 'a')
-sys.stdout = sys.stderr = outputfile
+sys.stdout = open(path + 'log.txt', 'a')
+sys.stderr = open(path + 'error.txt', 'a')
 
 if __name__ == '__main__':
     main()
