@@ -174,8 +174,6 @@ def handle_request(request):
 def main():
     r.login('isReactionaryBot', password)
     while True:
-        sys.stdout = open(path + 'log.txt', 'a')
-        sys.stderr = open(path + 'error.txt', 'a')
         try:
             for mention in r.get_mentions():
                 handle_request(mention)
@@ -183,8 +181,6 @@ def main():
                 handle_request(message)
         except Exception as e:
             print(e)
-        sys.stdout.close()
-        sys.stderr.close()
         time.sleep(120)
 
 
