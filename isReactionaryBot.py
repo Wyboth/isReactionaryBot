@@ -77,7 +77,7 @@ def update_subreddit_data(subredditdata, subreddit, item, is_comment):
             break
     if not subreddit_in_list:
         newdata = SubredditData()
-        newdata.subredditName = item.subreddit.display_name
+        newdata.subredditName = subreddit
         if is_comment:
             newdata.commentCount = 1
             newdata.totalCommentKarma = int(item.score)
