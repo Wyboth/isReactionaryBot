@@ -22,7 +22,6 @@
 
 import praw
 import sqlite3
-import sys
 from isReactionaryBotPrivateSettings import password, path
 from isReactionaryBotSubreddits import reactionary_subreddits
 import time
@@ -105,13 +104,13 @@ def calculate_reactionariness(user):
     
     for submission in submissions:
         subreddit = submission.subreddit.display_name.lower()
-        if subreddit in [x.lower() for x in reactionary_subreddits]:
+        if subreddit in reactionary_subreddits:
             nodata = False
             subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, submission, False)
     
     for comment in comments:
         subreddit = comment.subreddit.display_name.lower()
-        if subreddit in [x.lower() for x in reactionary_subreddits]:
+        if subreddit in reactionary_subreddits:
             nodata = False
             subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, comment, True)
     
@@ -152,34 +151,36 @@ def calculate_reactionariness(user):
 
 def handle_request(request):
     """Handles a user's comment or private message requesting the bot to investigate a user's reactionariness."""
-    if not has_processed(request.id):
-        user = extract_username(request.body)
-        if user is not None:
-            try:
-                if user == 'isreactionarybot':  # For smartasses.
-                    request.reply('Nice try.')
-                    sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                    print(time.ctime() + ': Received request to check self.')
-                else:
-                    request.reply(calculate_reactionariness(user))
-                    sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                    print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
-            except praw.errors.NotFound:
-                request.reply('User {0} not found.'.format(user))
+    if has_processed(request.id):
+        print('Request {0} already processed'.format(request.id))
+        return
+    user = extract_username(request.body)
+    if user is not None:
+        try:
+            if user == 'isreactionarybot':  # For smartasses.
+                request.reply('Nice try.')
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
-            sqlConnection.commit()
+                print(time.ctime() + ': Received request to check self.')
+            else:
+                request.reply(calculate_reactionariness(user))
+                sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
+                print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
+        except praw.errors.NotFound:
+            request.reply('User {0} not found.'.format(user))
+            sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
+            print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
+        sqlConnection.commit()
 
 
 def main():
     r.login('isReactionaryBot', password)
     while True:
         try:
-            mentions = r.get_mentions()
-            messages = r.get_messages()
-            for mention in mentions:
+            for mention in r.get_mentions():
+                print('Checking mention {0}'.format(mention.id))
                 handle_request(mention)
-            for message in messages:
+            for message in r.get_messages():
+                print('Checking message {0}'.format(message.id))
                 handle_request(message)
         except Exception as e:
             print(e)
