@@ -175,9 +175,11 @@ def main():
     r.login('isReactionaryBot', password)
     while True:
         try:
-            for mention in r.get_mentions():
+            mentions = r.get_mentions()
+            messages = r.get_messages()
+            for mention in mentions:
                 handle_request(mention)
-            for message in r.get_messages():
+            for message in messages:
                 handle_request(message)
         except Exception as e:
             print(e)
