@@ -121,8 +121,7 @@ def calculate_reactionariness(user):
     score = 0
     replytext = username + ' post history contains participation in the following subreddits:\n\n'
     for subredditData in subredditdata_list:
-        replytext += '[/r/' + subredditData.subredditName + '](' + 'http://np.reddit.com/r/' +\
-                     subredditData.subredditName + '): '
+        replytext += '/r/' + subredditData.subredditName + ': '
         if len(subredditData.submissionPermalinks) > 0:
             replytext += str(subredditData.submissionCount) + ' posts ('
             for i in range(len(subredditData.submissionPermalinks)):
@@ -146,7 +145,8 @@ def calculate_reactionariness(user):
         replytext += str(sentence_length) + ' years.'
     else:
         replytext += 'Execution.'
-    replytext += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched.'
+    replytext += '\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are fetched. Questions? Suggestions? ' \
+                 'Visit /r/isReactionaryBot!'
     return replytext
 
 
