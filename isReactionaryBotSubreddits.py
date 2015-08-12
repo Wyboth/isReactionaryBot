@@ -77,5 +77,14 @@ reactionarySubreddits = [
     'AntiPOZi',
     'Cringepics',
     'CringeAnarchy',
-    'nazi'
+    'nazi',
+    'PaoYongYang',
+    'thatHappened',
+    'undelete',
+    'conspiracy',
+    'ChairmanPao',
+    'StepDownPao',
+    'uncensorship',
+    'EllenPaoHate',
+    'GasTheSnoo'
 ]
