@@ -34,7 +34,7 @@ reactionary_subreddits = [
     'funnyniggers',
     'gasthekikes',
     'gasthekikes', 
-    'gasthesnoo'
+    'gasthesnoo',
     'gender_critical',
     'gendercritical',
     'gibsmedat',
@@ -105,5 +105,5 @@ reactionary_subreddits = [
     'whiterights',
     'whowillbuildtheroads',
     'worldstarhp',
-    'wtfniggers',
+    'wtfniggers'
 ]
