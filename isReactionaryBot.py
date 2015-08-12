@@ -182,7 +182,7 @@ def main():
             for message in r.get_messages():
                 handle_request(message)
         except Exception as e:
-            print(e, file=sys.stderr)
+            print(e)
         sys.stdout.close()
         sys.stderr.close()
         time.sleep(120)
