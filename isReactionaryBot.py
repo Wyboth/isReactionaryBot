@@ -24,7 +24,7 @@ import praw
 import sqlite3
 import sys
 from isReactionaryBotPrivateSettings import password, path
-from isReactionaryBotSubreddits import reactionarySubreddits
+from isReactionaryBotSubreddits import reactionary_subreddits
 import time
 import re
 
@@ -105,13 +105,13 @@ def calculate_reactionariness(user):
     
     for submission in submissions:
         subreddit = submission.subreddit.display_name.lower()
-        if subreddit in [x.lower() for x in reactionarySubreddits]:
+        if subreddit in [x.lower() for x in reactionary_subreddits]:
             nodata = False
             subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, submission, False)
     
     for comment in comments:
         subreddit = comment.subreddit.display_name.lower()
-        if subreddit in [x.lower() for x in reactionarySubreddits]:
+        if subreddit in [x.lower() for x in reactionary_subreddits]:
             nodata = False
             subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, comment, True)
     
