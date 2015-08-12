@@ -167,14 +167,12 @@ def handle_request(request):
             except praw.errors.NotFound:
                 request.reply('User {0} not found.'.format(user))
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user),
-                      file=sys.stderr)
+                print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
             sqlConnection.commit()
 
 
 def main():
     r.login('isReactionaryBot', password)
-    print(time.ctime() + ': Logged in as /u/isReactionaryBot', file=sys.stdout)
     while True:
         sys.stdout = open(path + 'log.txt', 'a')
         sys.stderr = open(path + 'error.txt', 'a')
