@@ -38,6 +38,10 @@ class SubredditData:
     submissionPermalinks = None  # List cannot be initialized here!
     commentPermalinks = None  # List cannot be initialized here!
 
+    def __init__(self, name, sub_count):
+        self.subredditName = name
+        self.submissionCount = sub_count
+
 
 def extract_username(text):
     """Extracts the username from the text of a comment or private message. The bot is summoned on the username found
@@ -57,85 +61,100 @@ def has_processed(post):
     return True
 
 
-def update_subreddit_data(subredditdata, subreddit, item, is_comment):
-    """This takes the submission or comment, and updates its corresponding subredditData class with all of its
-    attributes."""
-    subreddit_in_list = False
-    for i in range(len(subredditdata)):
-        if subredditdata[i].subredditName.lower() == subreddit:
-            subreddit_in_list = True
-            if is_comment:
-                subredditdata[i].commentCount += 1
-                subredditdata[i].totalCommentKarma += int(item.score)
-                if len(subredditdata[i].commentPermalinks) < 8:
-                    subredditdata[i].commentPermalinks.append(item.permalink + '?context=10')
-            else:
-                subredditdata[i].submissionCount += 1
-                subredditdata[i].totalSubmissionKarma += int(item.score)
-                if len(subredditdata[i].submissionPermalinks) < 8:
-                    subredditdata[i].submissionPermalinks.append(item.permalink)
-            break
-    if not subreddit_in_list:
-        newdata = SubredditData()
-        newdata.subredditName = subreddit
-        if is_comment:
-            newdata.commentCount = 1
-            newdata.totalCommentKarma = int(item.score)
-            newdata.commentPermalinks = [item.permalink + '?context=10']
-            newdata.submissionPermalinks = []
+def create_subreddit_summary(subdata):
+    """This function creates a SubredditData instance for each reactionary subreddit found in the user's history."""
+    datalist = {}
+    for subreddit in subdata:
+        subdata_instance = SubredditData(subreddit, len(subdata[subreddit]))
+        eight_submissions = []
+        for submission in subdata[subreddit]:
+            subdata_instance.totalSubmissionKarma += submission[1]
+            if len(eight_submissions) < 8:
+                eight_submissions.append(submission[0])
+        subdata_instance.submissionPermalinks = []
+        for submission in eight_submissions:
+            subdata_instance.submissionPermalinks.append(r.get_info(thing_id=submission).permalink)
+        datalist[subreddit] = subdata_instance
+    return datalist
+
+
+def add_comment_data(subreddit_summary, commentdata):
+    """This function adds the comments from each reactionary subreddit to the list thus far compiled."""
+    datalist = {}
+    for subreddit in commentdata:
+        if subreddit in subreddit_summary:
+            subdata_instance = subreddit_summary[subreddit]
         else:
-            newdata.submissionCount = 1
-            newdata.totalSubmissionKarma = int(item.score)
-            newdata.submissionPermalinks = [item.permalink]
-            newdata.commentPermalinks = []
-        subredditdata.append(newdata)
-    return subredditdata
+            subdata_instance = SubredditData(subreddit, 0)
+        eight_comments = []
+        for comment in commentdata[subreddit]:
+            subdata_instance.commentCount += 1
+            subdata_instance.totalCommentKarma += comment[1]
+            if len(eight_comments) < 8:
+                eight_comments.append(comment[0])
+        subdata_instance.commentPermalinks = []
+        for comment in eight_comments:
+            subdata_instance.commentPermalinks.append(r.get_info(thing_id=comment).permalink)
+        datalist[subreddit] = subdata_instance
+    return datalist
 
 
 def calculate_reactionariness(user):
     """Figures out how reactionary the user is, and returns the reply text."""
-    nodata = True
-    subredditdata_list = []
-    
+    subreddit_summary = {}
+
     praw_user = r.get_redditor(user)
     username = praw_user.name
     submissions = praw_user.get_submitted(limit=1000)
     comments = praw_user.get_comments(limit=1000)
-    
+
+    subdata = {}
     for submission in submissions:
         subreddit = submission.subreddit.display_name.lower()
         if subreddit in reactionary_subreddits:
-            nodata = False
-            subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, submission, False)
-    
+            if subreddit in subdata:
+                subdata[subreddit].append((submission.fullname, int(submission.score)))
+            else:
+                subdata[subreddit] = [(submission.fullname, int(submission.score))]
+    if subdata:
+        subreddit_summary.update(create_subreddit_summary(subdata))
+
+    commentdata = {}
     for comment in comments:
         subreddit = comment.subreddit.display_name.lower()
         if subreddit in reactionary_subreddits:
-            nodata = False
-            subredditdata_list = update_subreddit_data(subredditdata_list, subreddit, comment, True)
-    
-    if nodata:
-        return 'Nothing found for ' + username + '.'
-    
+            if subreddit in commentdata:
+                commentdata[subreddit].append((comment.fullname, int(comment.score)))
+            else:
+                commentdata[subreddit] = [(comment.fullname, int(comment.score))]
+    if commentdata:
+        subreddit_summary.update(add_comment_data(subreddit_summary, commentdata))
+
+    if not subreddit_summary:
+        return 'No participation in reactionary subreddits found for ' + username + '.\n\n---\n\nI am a bot. Only' \
+               'the past 1,000 posts and comments are fetched. Questions? Suggestions? Visit /r/isReactionaryBot!'
+
     score = 0
     replytext = username + ' post history contains participation in the following subreddits:\n\n'
-    for subredditData in subredditdata_list:
-        replytext += '/r/' + subredditData.subredditName + ': '
-        if len(subredditData.submissionPermalinks) > 0:
-            replytext += str(subredditData.submissionCount) + ' posts ('
-            for i in range(len(subredditData.submissionPermalinks)):
-                replytext += '[' + str(i+1) + '](' + subredditData.submissionPermalinks[i].replace('www.', 'np.') + '), '
-            replytext = replytext[:-2] + '), **combined score: ' + str(subredditData.totalSubmissionKarma) + '**'
-            if len(subredditData.commentPermalinks) > 0:
+    for subreddit in subreddit_summary:
+        replytext += '/r/' + subreddit_summary[subreddit].subredditName + ': '
+        if subreddit_summary[subreddit].submissionPermalinks:
+            replytext += str(subreddit_summary[subreddit].submissionCount) + ' posts ('
+            for i in range(len(subreddit_summary[subreddit].submissionPermalinks)):
+                replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].submissionPermalinks[i].replace(
+                    'www.', 'np.') + '), '
+            replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalSubmissionKarma) + '**'
+            if len(subreddit_summary[subreddit].commentPermalinks):
                 replytext += '; '
-        if len(subredditData.commentPermalinks) > 0:
-            replytext += str(subredditData.commentCount) + ' comments ('
-            for i in range(len(subredditData.commentPermalinks)):
-                replytext += '[' + str(i+1) + '](' + subredditData.commentPermalinks[i].replace('www.', 'np.') + '), '
-            replytext = replytext[:-2] + '), **combined score: ' + str(subredditData.totalCommentKarma) + '**'
+        if subreddit_summary[subreddit].commentPermalinks:
+            replytext += str(subreddit_summary[subreddit].commentCount) + ' comments ('
+            for i in range(len(subreddit_summary[subreddit].commentPermalinks)):
+                replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].commentPermalinks[i].replace(
+                    'www.', 'np.') + '), '
+            replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalCommentKarma) + '**'
         replytext += '.\n\n'
-        score += subredditData.totalSubmissionKarma + subredditData.totalCommentKarma
-    
+        score += subreddit_summary[subreddit].totalSubmissionKarma + subreddit_summary[subreddit].totalCommentKarma
+
     replytext += '---\n\n###Total score: ' + str(score) + '\n\n###Recommended Gulag Sentence: '
     sentence_length = 0
     if score > 0:
@@ -184,10 +203,11 @@ def main():
                 handle_request(message)
         except Exception as e:
             print(e)
+            continue
         time.sleep(120)
 
 
-username_regex = re.compile(r'^(/u/isReactionaryBot)?\s*(?:/?u/)?(?P<username>\w+)\s*$', re.IGNORECASE | re.MULTILINE)
+username_regex = re.compile(r'^(/u/isReactionaryBot)?\s*(?:/?u/)?(?P<username>[-\w]+)\s*$', re.IGNORECASE | re.MULTILINE)
 
 sqlConnection = sqlite3.connect(path + 'database.db')
 sqlCursor = sqlConnection.cursor()
