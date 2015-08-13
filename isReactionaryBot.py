@@ -190,15 +190,15 @@ def handle_request(request):
 
 def main():
     while True:
-#        try:
-        r.refresh_access_information()
-        for mention in r.get_mentions():
-            handle_request(mention)
-        for message in r.get_messages():
-            handle_request(message)
-#        except Exception as e:
-#            print(e)
-#            continue
+        try:
+            r.refresh_access_information()
+            for mention in r.get_mentions():
+                handle_request(mention)
+            for message in r.get_messages():
+                handle_request(message)
+        except Exception as e:
+            print(e)
+            continue
         time.sleep(120)
 
 
