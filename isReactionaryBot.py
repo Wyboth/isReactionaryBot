@@ -144,14 +144,18 @@ def calculate_reactionariness(user):
                 replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].submissionPermalinks[i].replace(
                     'www.', 'np.') + '), '
             replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalSubmissionKarma) + '**'
+            if subreddit_summary[subreddit].commentPermalinks:
+                replytext += '; '
         if subreddit_summary[subreddit].commentPermalinks:
-            replytext += '; ' + str(subreddit_summary[subreddit].commentCount) + ' comments ('
+            replytext += str(subreddit_summary[subreddit].commentCount) + ' comments ('
             for i in range(len(subreddit_summary[subreddit].commentPermalinks)):
                 replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].commentPermalinks[i].replace(
                     'www.', 'np.') + '), '
             replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalCommentKarma) + '**'
         replytext += '.\n\n'
         score += subreddit_summary[subreddit].totalSubmissionKarma + subreddit_summary[subreddit].totalCommentKarma
+        if len(replytext) >= 9500:
+            break
 
     replytext += '---\n\n###Total score: ' + str(score) + '\n\n###Recommended Gulag Sentence: '
     sentence_length = 0
@@ -190,15 +194,15 @@ def handle_request(request):
 
 def main():
     while True:
-        try:
-            r.refresh_access_information()
-            for mention in r.get_mentions():
-                handle_request(mention)
-            for message in r.get_messages():
-                handle_request(message)
-        except Exception as e:
-            print(e)
-            continue
+#        try:
+        r.refresh_access_information()
+        for mention in r.get_mentions():
+            handle_request(mention)
+        for message in r.get_messages():
+            handle_request(message)
+#        except Exception as e:
+#            print(e)
+#            continue
         time.sleep(120)
 
 
