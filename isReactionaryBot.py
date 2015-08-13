@@ -22,7 +22,7 @@
 
 import praw
 import sqlite3
-from isReactionaryBotPrivateSettings import password, path
+from isReactionaryBotPrivateSettings import path
 from isReactionaryBotSubreddits import reactionary_subreddits
 import time
 import re
@@ -171,7 +171,6 @@ def calculate_reactionariness(user):
 def handle_request(request):
     """Handles a user's comment or private message requesting the bot to investigate a user's reactionariness."""
     if has_processed(request.id):
-        print('Request {0} already processed'.format(request.id))
         return
     user = extract_username(request.body)
     if user is not None:
@@ -192,14 +191,12 @@ def handle_request(request):
 
 
 def main():
-    r.login('isReactionaryBot', password)
     while True:
         try:
+            r.refresh_access_information()
             for mention in r.get_mentions():
-                print('Checking mention {0}'.format(mention.id))
                 handle_request(mention)
             for message in r.get_messages():
-                print('Checking message {0}'.format(message.id))
                 handle_request(message)
         except Exception as e:
             print(e)
@@ -213,7 +210,7 @@ sqlConnection = sqlite3.connect(path + 'database.db')
 sqlCursor = sqlConnection.cursor()
 sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
 
-r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.')
+r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.', site_name='isRBot')
 
 if __name__ == '__main__':
     main()
