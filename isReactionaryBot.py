@@ -131,7 +131,7 @@ def calculate_reactionariness(user):
         subreddit_summary.update(add_comment_data(subreddit_summary, commentdata))
 
     if not subreddit_summary:
-        return 'No participation in reactionary subreddits found for ' + username + '.\n\n---\n\nI am a bot. Only' \
+        return 'No participation in reactionary subreddits found for ' + username + '.\n\n---\n\nI am a bot. Only ' \
                'the past 1,000 posts and comments are fetched. Questions? Suggestions? Visit /r/isReactionaryBot!'
 
     score = 0
