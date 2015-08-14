@@ -141,16 +141,14 @@ def calculate_reactionariness(user):
         if subreddit_summary[subreddit].submissionPermalinks:
             replytext += str(subreddit_summary[subreddit].submissionCount) + ' posts ('
             for i in range(len(subreddit_summary[subreddit].submissionPermalinks)):
-                replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].submissionPermalinks[i].replace(
-                    'www.', 'np.') + '), '
+                replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].submissionPermalinks[i] + '), '
             replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalSubmissionKarma) + '**'
             if subreddit_summary[subreddit].commentPermalinks:
                 replytext += '; '
         if subreddit_summary[subreddit].commentPermalinks:
             replytext += str(subreddit_summary[subreddit].commentCount) + ' comments ('
             for i in range(len(subreddit_summary[subreddit].commentPermalinks)):
-                replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].commentPermalinks[i].replace(
-                    'www.', 'np.') + '), '
+                replytext += '[' + str(i + 1) + '](' + subreddit_summary[subreddit].commentPermalinks[i] + '), '
             replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalCommentKarma) + '**'
         replytext += '.\n\n'
         score += subreddit_summary[subreddit].totalSubmissionKarma + subreddit_summary[subreddit].totalCommentKarma
