@@ -187,6 +187,9 @@ def handle_request(request):
             request.reply('User {0} not found.'.format(user))
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
             print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
+        except praw.errors.Forbidden:
+            sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
+            print(time.ctime() + ': Received request to check user {0}. Received 403 (probably banned).'.format(user))
         sqlConnection.commit()
 
 
