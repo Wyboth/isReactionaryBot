@@ -19,13 +19,12 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-import praw
-import sqlite3
 from isReactionaryBotPrivateSettings import path, refresh_token
 from isReactionaryBotSubreddits import reactionary_subreddits
-import time
+import praw
 import re
+import sqlite3
+import time
 
 
 class SubredditData:
