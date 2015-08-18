@@ -80,6 +80,7 @@ reactionary_subreddits = [
     'sandersforpresident',
     'seduction',
     'shitniggerssay',
+    'shitstatistssay',
     'sjsucks',
     'sjwhate',
     'srssucks', 
