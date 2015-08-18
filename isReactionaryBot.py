@@ -22,7 +22,7 @@
 
 import praw
 import sqlite3
-from isReactionaryBotPrivateSettings import path
+from isReactionaryBotPrivateSettings import path, refresh_token
 from isReactionaryBotSubreddits import reactionary_subreddits
 import time
 import re
@@ -196,7 +196,7 @@ def handle_request(request):
 def main():
     while True:
         try:
-            r.refresh_access_information()
+            r.refresh_access_information(refresh_token)
             for mention in r.get_mentions():
                 handle_request(mention)
             for message in r.get_messages():
