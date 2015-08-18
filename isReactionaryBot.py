@@ -177,32 +177,38 @@ def handle_request(request):
             if user == 'isreactionarybot':  # For smartasses.
                 request.reply('Nice try.')
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received request to check self.')
+                print(time.ctime() + ': Received request to check self.', file=outfile)
             else:
                 request.reply(calculate_reactionariness(user))
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
+                print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user),
+                      file=outfile)
         except praw.errors.NotFound:
-            request.reply('User {0} not found.'.format(user))
+            request.reply('User {0} not found.\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are '
+                          'fetched. Questions? Suggestions? Visit /r/isReactionaryBot!'.format(user))
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-            print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
+            print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user), file=outfile)
         except praw.errors.Forbidden:
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-            print(time.ctime() + ': Received request to check user {0}. Received 403 (probably banned).'.format(user))
+            print(time.ctime() + ': Received request to check user {0}. Received 403 (probably banned).'.format(user),
+                  file=outfile)
         sqlConnection.commit()
 
 
 def main():
+    global outfile
     while True:
         try:
+            outfile = open(path + 'output.txt', 'a')
             r.refresh_access_information(refresh_token)
             for mention in r.get_mentions():
                 handle_request(mention)
             for message in r.get_messages():
                 handle_request(message)
         except Exception as e:
-            print(e)
+            print(e, file=outfile)
             continue
+        outfile.close()
         time.sleep(120)
 
 
@@ -211,6 +217,8 @@ username_regex = re.compile(r'^(/u/isReactionaryBot)?\s*(?:/?u/)?(?P<username>[-
 sqlConnection = sqlite3.connect(path + 'database.db')
 sqlCursor = sqlConnection.cursor()
 sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
+
+outfile = None
 
 r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.', site_name='isRBot')
 
