@@ -194,10 +194,8 @@ def handle_request(request):
 
 
 def main():
-    global outfile
     while True:
         try:
-            outfile = open(path + 'output.txt', 'a')
             r.refresh_access_information(refresh_token)
             for mention in r.get_mentions():
                 handle_request(mention)
@@ -206,7 +204,6 @@ def main():
         except Exception as e:
             print(e)
             continue
-        outfile.close()
         time.sleep(120)
 
 
@@ -215,8 +212,6 @@ username_regex = re.compile(r'^(/u/isReactionaryBot)?\s*(?:/?u/)?(?P<username>[-
 sqlConnection = sqlite3.connect(path + 'database.db')
 sqlCursor = sqlConnection.cursor()
 sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
-
-outfile = None
 
 r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.', site_name='isRBot')
 
