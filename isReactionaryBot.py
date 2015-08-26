@@ -177,21 +177,19 @@ def handle_request(request):
             if user == 'isreactionarybot':  # For smartasses.
                 request.reply('Nice try.')
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received request to check self.', file=outfile)
+                print(time.ctime() + ': Received request to check self.')
             else:
                 request.reply(calculate_reactionariness(user))
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user),
-                      file=outfile)
+                print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
         except praw.errors.NotFound:
             request.reply('User {0} not found.\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are '
                           'fetched. Questions? Suggestions? Visit /r/isReactionaryBot!'.format(user))
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-            print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user), file=outfile)
+            print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
         except praw.errors.Forbidden:
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-            print(time.ctime() + ': Received request to check user {0}. Received 403 (probably banned).'.format(user),
-                  file=outfile)
+            print(time.ctime() + ': Received request to check user {0}. Received 403 (probably banned).'.format(user))
         sqlConnection.commit()
 
 
@@ -206,7 +204,7 @@ def main():
             for message in r.get_messages():
                 handle_request(message)
         except Exception as e:
-            print(e, file=outfile)
+            print(e)
             continue
         outfile.close()
         time.sleep(120)
