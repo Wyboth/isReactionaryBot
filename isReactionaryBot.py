@@ -21,6 +21,8 @@
 
 from isReactionaryBotPrivateSettings import path, refresh_token
 from isReactionaryBotSubreddits import reactionary_subreddits
+from logging.handlers import TimedRotatingFileHandler
+import logging
 import praw
 import re
 import sqlite3
@@ -177,19 +179,19 @@ def handle_request(request):
             if user == 'isreactionarybot':  # For smartasses.
                 request.reply('Nice try.')
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received request to check self.')
+                logger.info('Received request to check self.')
             else:
                 request.reply(calculate_reactionariness(user))
                 sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-                print(time.ctime() + ': Received and successfully processed request to check user {0}'.format(user))
+                logger.info('Received and successfully processed request to check user {0}'.format(user))
         except praw.errors.NotFound:
             request.reply('User {0} not found.\n\n---\n\nI am a bot. Only the past 1,000 posts and comments are '
                           'fetched. Questions? Suggestions? Visit /r/isReactionaryBot!'.format(user))
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-            print(time.ctime() + ': Received request to check user {0}. Failed to find user.'.format(user))
+            logger.info('Received request to check user {0}. Failed to find user.'.format(user))
         except praw.errors.Forbidden:
             sqlCursor.execute('INSERT INTO Identifiers VALUES (?)', (request.id,))
-            print(time.ctime() + ': Received request to check user {0}. Received 403 (probably banned).'.format(user))
+            logger.info('Received request to check user {0}. Received 403 (probably banned).'.format(user))
         sqlConnection.commit()
 
 
@@ -201,11 +203,20 @@ def main():
                 handle_request(mention)
             for message in r.get_messages():
                 handle_request(message)
-        except Exception as e:
-            print(e)
+        except Exception:
+            logger.exception('Error: ')
             continue
         time.sleep(120)
 
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('isRBlogger')
+loghandler = TimedRotatingFileHandler(path + 'log.txt', when='d', backupCount=3)
+loghandler.setLevel(logging.INFO)
+logformat = logging.Formatter(fmt='%(asctime)s: %(levelname)s: %(message)s',
+                              datefmt='%m/%d/%Y %I:%M:%S %p')
+loghandler.setFormatter(logformat)
+logger.addHandler(loghandler)
 
 username_regex = re.compile(r'^(/u/isReactionaryBot)?\s*(?:/?u/)?(?P<username>[-\w]+)\s*$', re.IGNORECASE | re.MULTILINE)
 
