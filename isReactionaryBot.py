@@ -200,9 +200,17 @@ def main():
     while True:
         try:
             for mention in r.get_mentions():
-                handle_request(mention)
+                try:
+                    handle_request(mention)
+                except Exception:
+                    logger.exception('Error: ')
+                    continue
             for message in r.get_messages():
-                handle_request(message)
+                try:
+                    handle_request(message)
+                except Exception:
+                    logger.exception('Error: ')
+                    continue
         except praw.errors.HTTPException:
             pass
         except Exception:
