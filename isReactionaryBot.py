@@ -198,24 +198,18 @@ def handle_request(request):
 def main():
     r.refresh_access_information(refresh_token)
     while True:
-        try:
-            for mention in r.get_mentions():
-                try:
-                    handle_request(mention)
-                except Exception:
-                    logger.exception('Error: ')
-                    continue
-            for message in r.get_messages():
-                try:
-                    handle_request(message)
-                except Exception:
-                    logger.exception('Error: ')
-                    continue
-        except praw.errors.HTTPException:
-            pass
-        except Exception:
-            logger.exception('Error: ')
-            continue
+        for mention in r.get_mentions():
+            try:
+                handle_request(mention)
+            except Exception:
+                logger.exception('Error: ')
+                continue
+        for message in r.get_messages():
+            try:
+                handle_request(message)
+            except Exception:
+                logger.exception('Error: ')
+                continue
         time.sleep(120)
 
 
