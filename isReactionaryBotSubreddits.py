@@ -73,6 +73,7 @@ reactionary_subreddits = [
     'polistan',
     'protectandserve',
     'punchablefaces', 
+    'pussypass',
     'pussypassdenied', 
     'racerealism',
     'racistniggers',
