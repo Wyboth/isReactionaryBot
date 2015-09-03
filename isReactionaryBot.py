@@ -196,8 +196,11 @@ def handle_request(request):
 
 
 def main():
-    r.refresh_access_information(refresh_token)
     while True:
+        try:
+            r.refresh_access_information(refresh_token)
+        except Exception:
+            logger.exception('Error: ')
         for mention in r.get_mentions():
             try:
                 handle_request(mention)
