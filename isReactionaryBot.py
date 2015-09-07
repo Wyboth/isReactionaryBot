@@ -153,7 +153,7 @@ def calculate_reactionariness(user):
             replytext = replytext[:-2] + '), **combined score: ' + str(subreddit_summary[subreddit].totalCommentKarma) + '**'
         replytext += '.\n\n'
         score += subreddit_summary[subreddit].totalSubmissionKarma + subreddit_summary[subreddit].totalCommentKarma
-        if len(replytext) >= 9250:
+        if len(replytext) >= 9000:
             break
 
     replytext += '---\n\n###Total score: ' + str(score) + '\n\n###Recommended Gulag Sentence: '
