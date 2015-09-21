@@ -26,7 +26,6 @@ import logging
 import praw
 import re
 import sqlite3
-import time
 
 
 class SubredditData:
@@ -196,24 +195,22 @@ def handle_request(request):
 
 
 def main():
-    while True:
+    try:
+        r.refresh_access_information(refresh_token)
+    except Exception:
+        logger.exception('Error: ')
+    for mention in r.get_mentions():
         try:
-            r.refresh_access_information(refresh_token)
+            handle_request(mention)
         except Exception:
             logger.exception('Error: ')
-        for mention in r.get_mentions():
-            try:
-                handle_request(mention)
-            except Exception:
-                logger.exception('Error: ')
-                continue
-        for message in r.get_messages():
-            try:
-                handle_request(message)
-            except Exception:
-                logger.exception('Error: ')
-                continue
-        time.sleep(120)
+            continue
+    for message in r.get_messages():
+        try:
+            handle_request(message)
+        except Exception:
+            logger.exception('Error: ')
+            continue
 
 
 logging.basicConfig(level=logging.DEBUG)
