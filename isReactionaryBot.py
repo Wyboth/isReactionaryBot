@@ -26,6 +26,7 @@ import logging
 import praw
 import re
 import sqlite3
+import sys
 
 
 class SubredditData:
@@ -174,6 +175,11 @@ def handle_request(request):
         return
     user = extract_username(request.body)
     if user is not None:
+        sqlConnection.isolation_level = 'EXCLUSIVE'
+        try:
+            sqlCursor.execute('BEGIN EXCLUSIVE')
+        except sqlite3.OperationalError:
+            raise SystemExit()
         try:
             if user == 'isreactionarybot':  # For smartasses.
                 request.reply('Nice try.')
@@ -226,7 +232,6 @@ username_regex = re.compile(r'^(/u/isReactionaryBot)?\s*(?:/?u/)?(?P<username>[-
 
 sqlConnection = sqlite3.connect(path + 'database.db')
 sqlCursor = sqlConnection.cursor()
-sqlCursor.execute('CREATE TABLE IF NOT EXISTS Identifiers (id text)')
 
 r = praw.Reddit(user_agent='A program that checks if a user is a reactionary.', site_name='isRBot')
 
